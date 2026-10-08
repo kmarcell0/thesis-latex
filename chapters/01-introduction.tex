@@ -1,0 +1,69 @@
+%----------------------------------------------------------------------------
+\chapter{Introduction}
+\label{chap:introduction}
+%----------------------------------------------------------------------------
+
+\section{Motivation}
+\label{sec:introduction-motivation}
+
+Autonomous surface vehicles (ASVs) are increasingly used for tasks such as
+environmental monitoring, hydrographic surveying and maritime security, where
+they can operate for long periods at lower cost and risk than crewed
+vessels~\cite{TODO-asv-overview}. A fundamental requirement of every such
+system is the ability to determine its own position and to build a model of
+its surroundings.
+
+This thesis is motivated by the plans of the BME Solar Boat Team to enter new
+competition categories. The team's latest vessel, the trimaran
+\textit{Crystal}, was designed for solar-class racing; however, the number of
+solar-class competitions has been declining in recent seasons. The team is
+therefore turning towards autonomous boating, with the longer-term goal of
+entering the autonomous class of Monaco Energy Boat Challenge in which full-scale
+boats race without a crew.
+
+RoboBoat, an international student competition organized by
+RoboNation~\cite{TODO-roboboat-handbook}, offers a suitable entry point. Its
+participants build small ASVs that must complete a series of autonomous tasks
+on a course marked by buoys. Most of these tasks require the vehicle to detect
+and classify buoys and to navigate relative to them, which in turn requires a
+consistent estimate of both the vehicle's position and the buoy locations.
+Because RoboBoat vehicles are small and inexpensive, the competition also
+provides a low-risk platform for developing autonomy systems before deploying
+them on a full-scale boat.
+
+The focus of this thesis is the localization and mapping subsystem of such a
+vehicle: estimating the pose of the ASV while simultaneously building a map of
+the classified buoys around it.
+
+
+\section{Problem Statement}
+\label{sec:introduction-problem-statement}
+% TODO: Define the core problem addressed by this thesis
+An ASV competing in RoboBoat operates on a course whose buoy positions are not
+known in advance. GNSS alone provides the vehicle's position with meter-level
+error, carries no information about the surrounding buoys, and may degrade
+near shore structures. Conversely, buoy detections from onboard sensors are
+only useful if the vehicle's own pose is known accurately. Perception on water
+adds further difficulty: small buoys are sparsely sampled by LiDAR at longer
+ranges, while reflections and glare corrupt both LiDAR and camera data. The
+RoboBoat designs reviewed in this work typically rely on GNSS combined with
+task-level buoy tracking, and do not report the accuracy or consistency of
+their estimates~\cite{TODO}.
+
+The problem addressed in this thesis is therefore how the pose of an ASV and
+the map of classified buoys can be estimated jointly and consistently by
+fusing GNSS, inertial, LiDAR and camera measurements, and how this estimate
+behaves under varying sensor noise, wave conditions and GNSS outages.
+
+
+\section{Objectives and Scope}
+\label{sec:introduction-objectives}
+% TODO: Simulation only; control and path planning out of scope
+
+
+
+\section{Structure of the Thesis}
+\label{sec:introduction-structure}
+% TODO: Brief overview of each chapter
+
+

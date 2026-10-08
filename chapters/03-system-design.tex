@@ -1,0 +1,269 @@
+%----------------------------------------------------------------------------
+\chapter{System Design}
+\label{chap:system-design}
+%----------------------------------------------------------------------------
+
+\section{Assumptions}
+\label{sec:system-design-assumptions}
+
+The localization and mapping system developed in this thesis is built on a
+small set of modeling assumptions. Their purpose is to keep the estimation
+problem tractable for a simultaneous localization and mapping (SLAM)
+formulation based on the extended Kalman filter (EKF), while remaining
+physically justified for an autonomous surface vehicle (ASV) operating on a
+sheltered inland course such as the RoboBoat competition venue. Each
+assumption is stated below together with its justification and the
+consequences of its violation. The two central assumptions, planar motion
+and a static environment, are discussed in
+Sections~\ref{sec:assumption-planar} and~\ref{sec:assumption-static};
+further assumptions concerning the sensors and the estimator are collected
+in Section~\ref{sec:assumption-further}.
+
+%----------------------------------------------------------------------------
+\subsection{Planar Motion}
+\label{sec:assumption-planar}
+%----------------------------------------------------------------------------
+
+The vehicle is assumed to move in the horizontal plane of a local,
+Earth-fixed navigation frame $\mathcal{W}$, whose axes point east, north and
+up (ENU) in accordance with the ROS coordinate conventions~\cite{rep103}.
+The pose of the vehicle body frame $\mathcal{B}$ at discrete time step $k$
+is described by
+\begin{equation}
+  \mathbf{x}_k =
+  \begin{bmatrix} x_k & y_k & \psi_k \end{bmatrix}^{\top},
+  \qquad \psi_k \in (-\pi, \pi],
+  \label{eq:planar-pose}
+\end{equation}
+where $(x_k, y_k)$ is the position of the origin of $\mathcal{B}$ in the
+east--north plane and $\psi_k$ is the yaw angle, measured counter-clockwise
+from the east axis. Equivalently, the pose is an element of the special
+Euclidean group $\mathrm{SE}(2)$ with the homogeneous representation
+\begin{equation}
+  \mathbf{T}_k =
+  \begin{bmatrix}
+    \cos\psi_k & -\sin\psi_k & x_k \\
+    \sin\psi_k & \cos\psi_k  & y_k \\
+    0          & 0           & 1
+  \end{bmatrix} \in \mathrm{SE}(2).
+  \label{eq:planar-se2}
+\end{equation}
+% TODO: If the process model carries velocities or IMU biases as states,
+% extend \mathbf{x}_k here and refer to the process model section.
+
+The restriction to three degrees of freedom is justified by the following
+observations.
+
+\begin{itemize}
+  \item An ASV is constrained to the water surface. Its heave, roll and
+  pitch are bounded, oscillatory responses to waves and maneuvers; they
+  carry no information relevant for navigation, and all competition tasks
+  are defined in the horizontal plane.
+
+  \item The remaining degrees of freedom are not ignored but treated as
+  known inputs. The roll angle $\phi_k$ and pitch angle $\theta_k$, using
+  the Z-Y-X (yaw--pitch--roll) Euler angle convention, are provided by the
+  attitude estimate of the flight controller's inertial measurement unit
+  (IMU). They are used to rotate every LiDAR and camera measurement into a
+  gravity-aligned frame before it is projected onto the horizontal plane:
+  \begin{equation}
+    \mathbf{p}^{\mathcal{H}} =
+    \mathbf{R}_y(\theta_k)\,\mathbf{R}_x(\phi_k)
+    \left( \mathbf{R}_{\mathcal{B}\mathcal{S}}\,\mathbf{p}^{\mathcal{S}}
+         + \mathbf{t}_{\mathcal{B}\mathcal{S}} \right),
+    \label{eq:tilt-compensation}
+  \end{equation}
+  where $\mathbf{p}^{\mathcal{S}}$ is a point in the sensor frame
+  $\mathcal{S}$,
+  $(\mathbf{R}_{\mathcal{B}\mathcal{S}}, \mathbf{t}_{\mathcal{B}\mathcal{S}})$
+  is the sensor-to-body transform, and $\mathcal{H}$ denotes the level frame
+  that shares the heading of $\mathcal{B}$. Only the first two components
+  of $\mathbf{p}^{\mathcal{H}}$ are used.
+
+  \item The operating area extends over at most a few hundred meters. GNSS
+  positions are converted from geodetic coordinates to the local ENU frame,
+  whose origin is fixed at a surveyed reference point, and the up component
+  is discarded. For a point at a distance $s$ along the Earth's surface from
+  the origin, the horizontal ENU coordinates deviate from the true distance
+  by approximately $s^3 / (6 R_\mathrm{E}^2)$, where
+  $R_\mathrm{E} \approx 6371\,\mathrm{km}$. At $s = 1\,\mathrm{km}$ this
+  amounts to about $4\,\mu\mathrm{m}$, which is negligible.
+
+  \item The heading measured by the dual-antenna GNSS receiver is referenced
+  to geodetic north, i.e.\ to the same frame as the position measurements,
+  so no magnetic declination has to be modeled. The azimuth $\alpha$ of the
+  vehicle's longitudinal axis, measured clockwise from north after
+  correcting for the orientation of the antenna baseline
+  (cf.~\ref{asm:extrinsics}), is converted to the yaw angle of
+  \eqref{eq:planar-pose} by $\psi = \pi/2 - \alpha$, followed by wrapping
+  to $(-\pi, \pi]$.
+\end{itemize}
+
+As a consequence, attitude errors only enter the planar problem through the
+projection~\eqref{eq:tilt-compensation}. Without compensation, a tilt
+$\theta$ in the direction of a target at sensor height would shorten its
+measured horizontal range by $r(1-\cos\theta) \approx r\theta^2/2$, e.g.\
+by $7.6\,\mathrm{cm}$ at $r = 20\,\mathrm{m}$ and $\theta = 5^\circ$, and
+targets above or below the sensor would additionally be displaced by
+$\Delta h \tan\theta$. With the IMU attitude applied, only the attitude
+estimation error remains, which is small compared with the other error
+sources.
+% TODO: Confirm typical roll/pitch amplitudes from the simulation logs.
+
+%----------------------------------------------------------------------------
+\subsection{Static Landmarks}
+\label{sec:assumption-static}
+%----------------------------------------------------------------------------
+
+The map is represented by $N$ point landmarks
+\begin{equation}
+  \mathbf{m}_j =
+  \begin{bmatrix} m_{x,j} & m_{y,j} \end{bmatrix}^{\top} \in \mathbb{R}^2,
+  \qquad j = 1, \dots, N,
+  \label{eq:landmark}
+\end{equation}
+each corresponding to a moored course marker, primarily the navigation
+buoys of the competition course. The landmarks are assumed to be static in
+$\mathcal{W}$,
+\begin{equation}
+  \mathbf{m}_{j,k+1} = \mathbf{m}_{j,k}, \qquad j = 1, \dots, N,
+  \label{eq:static-landmarks}
+\end{equation}
+so that the full state estimated by the filter is
+\begin{equation}
+  \boldsymbol{\xi}_k =
+  \begin{bmatrix}
+    \mathbf{x}_k^{\top} & \mathbf{m}_1^{\top} & \cdots & \mathbf{m}_N^{\top}
+  \end{bmatrix}^{\top} \in \mathbb{R}^{3+2N}.
+  \label{eq:slam-state}
+\end{equation}
+
+This assumption reflects how the course is built: buoys are anchored, and
+their layout does not change during a run. Three deviations from the ideal
+are expected and handled as follows.
+
+\begin{itemize}
+  \item \textbf{Mooring motion.} A moored buoy moves within a small circle
+  around its anchor under the influence of wind, current and waves. This
+  motion is small compared with the other error sources and is absorbed by
+  the landmark measurement noise covariance rather than modeled as a
+  separate process.
+  % TODO: Quantify the expected buoy excursion if data is available.
+
+  \item \textbf{Finite extent.} A buoy of radius $r_\mathrm{b}$ is not a
+  point, and the LiDAR only observes the side facing the sensor. For a
+  circular cross-section sampled uniformly in angle from a distant sensor,
+  the centroid of the returns lies approximately $\pi r_\mathrm{b} / 4$
+  closer to the sensor than the buoy's axis, e.g.\ about $0.12\,\mathrm{m}$
+  for $r_\mathrm{b} = 0.15\,\mathrm{m}$. Since the camera classifies each
+  buoy, this bias can be compensated with a class-dependent offset along
+  the line of sight.
+
+  \item \textbf{Dynamic objects.} Other vessels, safety boats, wildlife and
+  the vehicle's own wake violate the static assumption. They are kept out
+  of the map: only detections classified as a landmark class are admitted
+  as landmark candidates, while all other detections are used by the
+  obstacle avoidance layer only, outside the SLAM state.
+\end{itemize}
+
+The static assumption is essential to the behavior of EKF-SLAM. For a
+static map, the determinant of any submatrix of the map covariance matrix
+decreases monotonically as successive observations are
+made~\cite{dissanayake2001}. A landmark that actually moves would therefore
+cause an overconfident estimate and, through the correlations between
+landmark and vehicle states, would also corrupt the pose estimate.
+Measurements that are inconsistent with the static assumption must
+consequently be rejected before the update step.
+
+%----------------------------------------------------------------------------
+\subsection{Further Assumptions}
+\label{sec:assumption-further}
+%----------------------------------------------------------------------------
+
+% Requires \usepackage{enumitem} in the preamble.
+\begin{enumerate}[label=\textbf{A\arabic*}, ref=A\arabic*, leftmargin=*]
+  \item\label{asm:extrinsics}
+  \textbf{Rigid mounting and known extrinsics.} All sensors are rigidly
+  attached to the vehicle body, and the transforms between each sensor
+  frame and $\mathcal{B}$ are constant and known. This includes the lever
+  arms of the two GNSS antennas and the upside-down mounting of the LiDAR,
+  which corresponds to a rotation of $180^\circ$ about the sensor's
+  longitudinal axis. In simulation the transforms are known exactly from
+  the vehicle model; on the physical vehicle they have to be obtained from
+  the CAD model and refined by calibration.
+
+  \item\label{asm:time}
+  \textbf{Common time base.} All measurements are timestamped in a common
+  clock, and transport latencies are either negligible or compensated, so
+  that measurements can be processed in timestamp order. In simulation all
+  sensors are stamped with the simulation clock; on the physical vehicle,
+  hardware time synchronization (e.g.\ the Precision Time Protocol
+  supported by the LiDAR) is required.
+
+  \item\label{asm:noise}
+  \textbf{Gaussian white noise.} Measurement and process noise are
+  zero-mean, Gaussian, white and mutually independent between sensors, with
+  known covariances derived from the sensor specifications
+  (Section~\ref{sec:system-design-sensors}). Together
+  with~\eqref{eq:static-landmarks}, this corresponds to the Markov
+  assumption underlying recursive Bayesian estimation~\cite{thrun2005}.
+  % TODO: Create sec:system-design-sensors or change this reference.
+
+  \item\label{asm:gnss}
+  \textbf{GNSS availability.} GNSS position and dual-antenna heading are
+  available in the open-sky environment of the course, with an accuracy
+  that depends on the correction status (RTK fixed, RTK float or
+  standalone). This status is reflected in the measurement covariance
+  rather than assumed constant.
+  % TODO: State here whether GNSS outages are simulated in the evaluation.
+
+  \item\label{asm:heading}
+  \textbf{Small heading uncertainty.} The heading error of the vehicle
+  remains small throughout operation, since heading is directly observed by
+  the dual-antenna GNSS receiver. This is relevant because the
+  inconsistency of EKF-SLAM has been shown to stem primarily from
+  linearization errors caused by heading uncertainty~\cite{bailey2006}.
+
+  \item\label{asm:map-size}
+  \textbf{Moderate map size.} The number of landmarks is on the order of
+  tens. Since the computational cost of an EKF update grows quadratically
+  with the state dimension, a state of, for example,
+  $3 + 2 \cdot 50 = 103$ elements remains well within real-time limits, and
+  no submapping or sparsification is required.
+  % TODO: Confirm the expected landmark count from the course layout.
+
+  \item\label{asm:association}
+  \textbf{Unknown correspondences.} The correspondence between measurements
+  and landmarks is \emph{not} assumed to be known; it is estimated online
+  from the landmark class provided by the camera and a gating test on the
+  Mahalanobis distance of the innovation.
+  % TODO: Adjust if known data association is assumed in simulation.
+\end{enumerate}
+
+\section{Sensor Configuration}
+\label{sec:system-design-sensor-configuration}
+% TODO: LiDAR/camera resolution analysis
+
+\section{Coordinate Frames and Transformations}
+\label{sec:system-design-coordinate-frames}
+% TODO: TF tree, WGS84 to ENU
+
+\section{Vehicle Motion Model}
+\label{sec:system-design-motion-model}
+% TODO: Derive the vehicle motion model
+
+\section{Observation Models}
+\label{sec:system-design-observation-models}
+% TODO: Range-bearing landmark model, GNSS model
+
+\section{EKF-SLAM Formulation}
+\label{sec:system-design-ekf-slam-formulation}
+% TODO: State vector, prediction, correction, state augmentation
+
+\section{Noise Models}
+\label{sec:system-design-noise-models}
+% TODO: Datasheet-based Q and R
+
+\section{Data Association and Map Management Design}
+\label{sec:system-design-data-association}
+% TODO: Data association and map management design

@@ -1,0 +1,174 @@
+%--------------------------------------------------------------------------------------
+% Dokumentum formátuma [Document format]
+%--------------------------------------------------------------------------------------
+
+%TODO Válaszd ki, hogy egyoldalas vagy kétoldalas legyen! [Choose format]
+%\documentclass[12pt,a4paper,oneside]{report}             % Egyoldalas [Single-side]
+\documentclass[12pt,a4paper,twoside,openright]{report}  % Kétoldalas [Duplex]
+
+
+%--------------------------------------------------------------------------------------
+% Csomagok inicializálása [Initializing packages]
+%--------------------------------------------------------------------------------------
+\input{include/packages}
+
+
+%--------------------------------------------------------------------------------------
+% Dokumentum nyelve [Language]
+%--------------------------------------------------------------------------------------
+
+%TODO Válaszd ki a nyelvet! [Select language]
+%\input{include/language-setup-hu} % Beállítások magyar nyelvű dolgozathoz
+\input{include/language-setup-en}    % Settings for English document
+
+% Megjegyzés: 
+%         Ez a beállítás az automatikusan létrehozott címek, hivatkozások
+%         nyelvét adja meg, valamint a nyelvre jellemző behúzási távolságot
+%         használja a bekezdések elején.
+%
+% Note: 
+%         This setting controls the language of generated titles and citations,
+%         moreover the paragraph indentation.
+
+
+%--------------------------------------------------------------------------------------
+% Preambulum (LaTeX beállítások, makrók) [Preamble (LaTeX settings)]
+%--------------------------------------------------------------------------------------
+\input{include/preamble}
+
+
+%--------------------------------------------------------------------------------------
+% Munkatípus [Thesis type]
+%--------------------------------------------------------------------------------------
+
+%TODO Válaszd ki a munkatípust [Select thesis type]
+\selectbsc    % Szakdolgozat [Bachelor's]
+%\selectmsc   % Diplomaterv [Master's]
+
+
+%--------------------------------------------------------------------------------------
+% Változók beállítása [Setting variables]
+%--------------------------------------------------------------------------------------
+
+%TODO Állítsd be az alábbi változókat [Set these variables]
+
+% Szerző [Author]
+\def\authorFamilyName{Kovács}
+\def\authorGivenName{Marcell}
+\def\neptun{VI6C6K}
+
+% Konzulens 1 [Consulent 1]
+\def\consulentATitle{}
+\def\consulentAFamilyName{Dudás}
+\def\consulentAGivenName{Dávid}
+\def\consulentARank{lecturer}
+
+% Konzulens 2 [Consulent 2], ha nincs hagyd üresen
+\def\consulentBTitle{}
+\def\consulentBFamilyName{}
+\def\consulentBGivenName{}
+\def\consulentBRank{}
+
+% Konzulens 3 [Consulent 3], ha nincs hagyd üresen 
+\def\consulentCTitle{}
+\def\consulentCFamilyName{}
+\def\consulentCGivenName{}
+\def\consulentCRank{}
+
+% Témavezető
+\def\supervisorTitle{}
+\def\supervisorFamilyName{Bojtos}
+\def\supervisorGivenName{Attila}
+\def\supervisorRank{assistant lecturer}
+
+% Dolgozat címe [Thesis title]
+\def\thesisTitle{GNSS-Aided Multi-Sensor Simultaneous Localization and Mapping for Autonomous Surface Vehicles in a Simulation Environment}
+
+% Kulcsszavak (a PDF-be) [Keywords (to PDF)]
+\def\keywords{mechatronika, SLAM, Roboboat, ASV, Gazebo, ROS2, GNSS, IMU}
+
+% Tanszék [Department]
+\def\department{\bmemogi}
+
+% Változók beállítása a PDF fájlhoz [Apply variables for the PDF file]
+\applyvariables
+
+
+%--------------------------------------------------------------------------------------
+% Dokumentum törzse [Document body]
+%--------------------------------------------------------------------------------------
+
+\begin{document}
+
+\pagenumbering{gobble}
+\selectthesislanguage
+
+% Címoldal [Titlepage]
+\include{include/titlepage-thesis}  % Szakdolgozat/Diplomaterv címlap [Thesis]
+
+
+% Copytightoldal [Copyright page]
+\include{include/copyrightpage}               % Nyílt kezelésű [Open access]
+
+
+% Feladatkiírás [Project page]
+%TODO A nyomtatott verzóban ne szerepeljen! [Remove before printing]
+\include{chapters/project}
+
+
+% Nyilatkozatok [Declarations]
+\include{include/declaration}
+
+\selectthesislanguage
+% Tartalomjegyzék [Table of Contents]
+\setcounter{tocdepth}{3}  % Tartalomjegyzék mélysége [ToC depth]
+\tableofcontents\vfill
+
+
+% Ábrák és táblázatok jegyzéke [List of Figures, Tables]
+%TODO Kommenteld ki, ha használni szeretnéd. [Uncomment to use]
+%\listoffigures\addcontentsline{toc}{chapter}{\listfigurename}   % Ábrák jegyzéke - opcionális
+%\listoftables\addcontentsline{toc}{chapter}{\listtablename}     % Táblázatok jegyzéke - opcionális
+
+
+% Előszó [Preface]
+\include{chapters/preface}
+
+
+% Jelölések jegyzéke [Table of Symbols]
+\include{chapters/symbols}
+
+
+% Főszöveg [The main part of the thesis]
+\cleardoublepage
+\pagenumbering{arabic}
+
+\include{chapters/01-introduction}
+\include{chapters/02-literature-review}
+\include{chapters/03-system-design}
+\include{chapters/04-simulation-environment}
+\include{chapters/05-implementation}
+\include{chapters/06-evaluation}
+\include{chapters/07-conclusion}
+
+
+% Bibliográfia [Bibliography]
+\addcontentsline{toc}{chapter}{\bibname}
+{
+    \footnotesize  % Kisebb betűméret [Smaller font size]
+    \bibliography{bib/mybib}
+}
+
+
+% Idegen nyelvű (angol) összefoglaló [Foreign language summary]
+\include{chapters/summary-foreign}
+
+
+% Függelék és mellékletek [Appendices]
+%\excludeFromLocAndLot % A következő ábrákat és a táblázatokat hagyja ki a jegyzékből
+                      % [Exclude following figures and tables from List Of Figures/Tables]
+
+\include{chapters/appendices}        % Függelék
+%\include{chapters/annexes}          % Mellékletek - nem használt
+
+\end{document}
