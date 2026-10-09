@@ -7,6 +7,128 @@
 \label{sec:literature-review-probabilistic-state-estimation}
 % TODO: Bayes filter, Kalman filter, EKF
 
+As all sensors in the real world, the sensors used on the ASV are all noisy and do not return perfect measurements.
+Physical/motion model approximations, environmental factors, actuations, give way to a great deal of uncertianty\citep[ch.~1]{thrun2005probabilistic}.
+Due to all of these reasons, there are scenarios where some quantities of intereset can not be measured directly, only inferred from other measurements,
+hence the need for a propabilistic representation of state\citep[ch.~2]{thrun2005probabilistic}.
+
+A belief is a propability distribuition over the state, given all the measurements
+and control inputs so far. The state is, in this case, the boats position and heading\citep[ch.~2]{thrun2005probabilistic}.
+As all of these measurements carry uncertianty, the state can not be known exactly,
+it should be described with a distribuition, where the spread of said distribuition
+is the uncertianty.
+
+The Bayes filter is the system in which these propability distribuitions are handled.
+The filter works recursively, using only the newest control input and measurements.
+It need not recalculate from the begginning, only the last step.
+This recursive nature is made possible by the Markow assumption, which says:
+Past and future data are independent if one know the current state.
+What this means in this case is if the current state is known,
+only the most recent belief matters in the prediction of the next state, as all control inputs and measurements, up to that moment,
+have aleady been taken into account, only the newest measurements and control inputs are needed,
+greatly decreasing computational costs\citep[ch.~2]{thrun2005probabilistic}.
+
+There are two steps to the filter: Firstly the prediction step, then the correction step.
+The predicition step propagates the previos belief through the motion model.
+This takes the previos belief, control inputs, and the motion model, and calculates
+the new predicted belief ($\overline{bel}(x_t)$).
+The uncertianty grows with this step as, the motion model is imperfect.
+Then the correction step weighs the predicted belief by the likelyhood of the
+new measurement, then normalizes it. This step usually reduces the uncertianty\citep[ch.~2]{thrun2005probabilistic}.
+
+\begin{align}
+  bel(x_t) &= p(x_t | z_{1:t}, u_{1:t}) \\
+  \overline{bel}(x_t) &= \int p(x_t | u_t, x_{t-1}) \, bel(x_{t-1}) \, dx_{t-1} \\
+  bel(x_t) &= \eta \, p(z_t | x_t) \, \overline{bel}(x_t)
+\end{align}
+
+The above integrals of the Bayes filter, most of the time,
+do not have a closed form solutions, so assumptions have to be made.
+If the motion and measurement models are linear, and the initial belief and all noise is Gaussian,
+the belief stays Gaussian at every step.
+A Gaussian belief can be fully described by the mean and covariance~\citep[ch.~3]{thrun2005probabilistic}.
+
+The Kalman filter~\citep{kalman1960new} is the Bayes filter for exactly this scenario.
+Just like the Bayes filter it also works in two steps.
+The prediction step moves the mean and grows covariance.
+While the correction step pulls the mean towards the measurement and
+shrinks the covariance.
+Prediction and measurement are generally not equally reliable, so there is a need for
+a weight. This weight is the Kalman gain ($K_t$). The Kalman gain has to be calculated
+every step of the filter from the predicted covariance and measurement noise.
+The Kalman gain is the optimal weighting under the above mentioned
+linear-Gaussian assumptions~\citep[ch.~3]{thrun2005probabilistic}.
+
+Below are the equations defining the Kalman filter, with the notation defined in Table~\ref{tab:kf-notation}.
+The notation $R$ and $Q$ follow Thrun's convention.
+
+\begin{align}
+  \bar{\mu}_t &= A_t \mu_{t-1} + B_t u_t \\
+  \bar{\Sigma}_t &= A_t \Sigma_{t-1} A_t^\top + R_t \\
+  K_t &= \bar{\Sigma}_t C_t^\top \left( C_t \bar{\Sigma}_t C_t^\top + Q_t \right)^{-1} \\
+  \mu_t &= \bar{\mu}_t + K_t \left( z_t - C_t \bar{\mu}_t \right) \\
+  \Sigma_t &= (I - K_t C_t)\, \bar{\Sigma}_t
+\end{align}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Kalman filter and extended Kalman filter notation.}
+  \label{tab:kf-notation}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Symbol & Meaning & Dimension \\
+    \midrule
+    $x_t$ & state at time step $t$ & $n \times 1$ \\
+    $u_t$ & control input & $m \times 1$ \\
+    $z_t$ & measurement & $k \times 1$ \\
+    \midrule
+    $\mu_t$, $\Sigma_t$ & mean and covariance of the belief & $n \times 1$, $n \times n$ \\
+    $\bar{\mu}_t$, $\bar{\Sigma}_t$ & predicted mean and covariance & $n \times 1$, $n \times n$ \\
+    \midrule
+    $A_t$ & state transition matrix & $n \times n$ \\
+    $B_t$ & control input matrix & $n \times m$ \\
+    $C_t$ & measurement matrix & $k \times n$ \\
+    $R_t$ & motion (process) noise covariance & $n \times n$ \\
+    $Q_t$ & measurement noise covariance & $k \times k$ \\
+    $K_t$ & Kalman gain & $n \times k$ \\
+    $I$ & identity matrix & $n \times n$ \\
+    \midrule
+    $g(u_t, x_{t-1})$ & nonlinear motion model & $\mathbb{R}^m \times \mathbb{R}^n \to \mathbb{R}^n$ \\
+    $h(x_t)$ & nonlinear measurement model & $\mathbb{R}^n \to \mathbb{R}^k$ \\
+    $G_t$ & Jacobian of $g$ w.r.t.\ the state, at $\mu_{t-1}$ & $n \times n$ \\
+    $H_t$ & Jacobian of $h$ w.r.t.\ the state, at $\bar{\mu}_t$ & $k \times n$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+As discussed in the previous paragraph, the Kalman filter
+only works with linear models and Guassian noise.
+In the real world most of the models are nonlinear.
+Like the ASV's motion/measurement model. These contain $\sin/\cos$ of the heading,
+and buoys are measured with range and bearing (a square root and $\operatorname{atan2}$).
+None of which are linear functions.
+The main problem is that a Gaussian pushed through a nonlinear function loses
+its Gaussian nature, hence application of the Kalman filter is non-feasable.
+The main idea is to linearize these non-linear models. This is the idea the
+Extended-Kalman filter is based on~\citep[ch.~3]{thrun2005probabilistic}.
+
+The Extended-Kalman filter linearizes these non-linear models by utalizing
+first-order Taylor expansions around the current estimate.
+The filters $A$ and $C$ matrices become Jacobians: $G_t$ is the motion models
+Jacobian with respect to the state, evaluated at the previous mean, and $H_t$
+is the measurement model's Jacobian evaluated at the predicted mean.
+The mean is still propagated through the non-linear models $g$ and $h$ functions.
+Only the covariance and gain utalize the linearized
+$G_t$ and $H_t$ Jacobians~\citep[ch.~3]{thrun2005probabilistic}.
+
+\begin{align}
+  \bar{\mu}_t &= g(u_t, \mu_{t-1}) \\
+  \bar{\Sigma}_t &= G_t \Sigma_{t-1} G_t^\top + R_t \\
+  K_t &= \bar{\Sigma}_t H_t^\top \left( H_t \bar{\Sigma}_t H_t^\top + Q_t \right)^{-1} \\
+  \mu_t &= \bar{\mu}_t + K_t \left( z_t - h(\bar{\mu}_t) \right) \\
+  \Sigma_t &= (I - K_t H_t)\, \bar{\Sigma}_t
+\end{align}
+
 \section{The SLAM Problem}
 \label{sec:literature-review-slam-problem}
 % TODO: Probabilistic formulation, correlation structure, convergence

@@ -1,0 +1,217 @@
+% Sources for Section 2.1 "Probabilistic State Estimation"
+% Every entry checked twice (2026-10-08) against Crossref, the DOI resolver, publisher pages or library catalogues.
+
+% ---------- A. Foundations: Bayes filter, Markov assumption ----------
+@book{thrun2005probabilistic,
+  author    = {Thrun, Sebastian and Burgard, Wolfram and Fox, Dieter},
+  title     = {Probabilistic Robotics},
+  publisher = {MIT Press},
+  address   = {Cambridge, MA},
+  year      = {2005},
+  isbn      = {978-0-262-20162-9}
+}
+
+@book{sarkka2013bayesian,
+  author    = {S{\"a}rkk{\"a}, Simo},
+  title     = {Bayesian Filtering and Smoothing},
+  publisher = {Cambridge University Press},
+  address   = {Cambridge},
+  year      = {2013},
+  isbn      = {978-1-107-03065-7},
+  doi       = {10.1017/CBO9781139344203}
+}
+
+@book{barfoot2017state,
+  author    = {Barfoot, Timothy D.},
+  title     = {State Estimation for Robotics},
+  publisher = {Cambridge University Press},
+  address   = {Cambridge},
+  year      = {2017},
+  isbn      = {978-1-107-15939-6},
+  doi       = {10.1017/9781316671528}
+}
+
+% ---------- B. Kalman filter ----------
+@article{kalman1960new,
+  author  = {Kalman, Rudolf E.},
+  title   = {A New Approach to Linear Filtering and Prediction Problems},
+  journal = {Journal of Basic Engineering},
+  volume  = {82},
+  number  = {1},
+  pages   = {35--45},
+  year    = {1960},
+  doi     = {10.1115/1.3662552}
+}
+
+@article{grewal2010applications,
+  author  = {Grewal, Mohinder S. and Andrews, Angus P.},
+  title   = {Applications of {Kalman} Filtering in Aerospace 1960 to the Present},
+  journal = {IEEE Control Systems Magazine},
+  volume  = {30},
+  number  = {3},
+  pages   = {69--78},
+  year    = {2010},
+  doi     = {10.1109/MCS.2010.936465}
+}
+
+% ---------- C. Nonlinear filters: EKF, UKF, particle filter ----------
+@inproceedings{julier1997new,
+  author    = {Julier, Simon J. and Uhlmann, Jeffrey K.},
+  title     = {New extension of the {Kalman} filter to nonlinear systems},
+  booktitle = {Signal Processing, Sensor Fusion, and Target Recognition VI},
+  series    = {Proceedings of SPIE},
+  volume    = {3068},
+  pages     = {182--193},
+  year      = {1997},
+  doi       = {10.1117/12.280797}
+}
+
+@article{julier2004unscented,
+  author  = {Julier, Simon J. and Uhlmann, Jeffrey K.},
+  title   = {Unscented Filtering and Nonlinear Estimation},
+  journal = {Proceedings of the IEEE},
+  volume  = {92},
+  number  = {3},
+  pages   = {401--422},
+  year    = {2004},
+  doi     = {10.1109/JPROC.2003.823141}
+}
+
+@article{gordon1993novel,
+  author  = {Gordon, Neil J. and Salmond, David J. and Smith, Adrian F. M.},
+  title   = {Novel approach to nonlinear/non-{Gaussian} {Bayesian} state estimation},
+  journal = {IEE Proceedings F (Radar and Signal Processing)},
+  volume  = {140},
+  number  = {2},
+  pages   = {107--113},
+  year    = {1993},
+  doi     = {10.1049/ip-f-2.1993.0015}
+}
+
+@article{arulampalam2002tutorial,
+  author  = {Arulampalam, M. Sanjeev and Maskell, Simon and Gordon, Neil and Clapp, Tim},
+  title   = {A tutorial on particle filters for online nonlinear/non-{Gaussian} {Bayesian} tracking},
+  journal = {IEEE Transactions on Signal Processing},
+  volume  = {50},
+  number  = {2},
+  pages   = {174--188},
+  year    = {2002},
+  doi     = {10.1109/78.978374}
+}
+
+% ---------- D. Consistency, gating, navigation-oriented filtering ----------
+@book{barshalom2001estimation,
+  author    = {Bar-Shalom, Yaakov and Li, X. Rong and Kirubarajan, Thiagalingam},
+  title     = {Estimation with Applications to Tracking and Navigation: Theory, Algorithms and Software},
+  publisher = {Wiley},
+  address   = {New York},
+  year      = {2001},
+  isbn      = {978-0-471-41655-5},
+  doi       = {10.1002/0471221279}
+}
+
+@book{groves2013principles,
+  author    = {Groves, Paul D.},
+  title     = {Principles of {GNSS}, Inertial, and Multisensor Integrated Navigation Systems},
+  edition   = {2nd},
+  publisher = {Artech House},
+  address   = {Boston, MA},
+  year      = {2013},
+  isbn      = {978-1-60807-005-3}
+}
+
+% ---------- E. Maritime / ASV state estimation ----------
+@book{fossen2021handbook,
+  author    = {Fossen, Thor I.},
+  title     = {Handbook of Marine Craft Hydrodynamics and Motion Control},
+  edition   = {2nd},
+  publisher = {Wiley},
+  address   = {Chichester},
+  year      = {2021},
+  isbn      = {978-1-119-57505-4},
+  doi       = {10.1002/9781119575016}
+}
+
+@article{johansen2017exogenous,
+  author  = {Johansen, Tor A. and Fossen, Thor I.},
+  title   = {The {eXogenous Kalman Filter} ({XKF})},
+  journal = {International Journal of Control},
+  volume  = {90},
+  number  = {2},
+  pages   = {161--167},
+  year    = {2017},
+  doi     = {10.1080/00207179.2016.1172390}
+}
+
+@article{liu2016unmanned,
+  author  = {Liu, Zhixiang and Zhang, Youmin and Yu, Xiang and Yuan, Chi},
+  title   = {Unmanned surface vehicles: An overview of developments and challenges},
+  journal = {Annual Reviews in Control},
+  volume  = {41},
+  pages   = {71--93},
+  year    = {2016},
+  doi     = {10.1016/j.arcontrol.2016.04.018}
+}
+
+@article{liu2023filtering,
+  author  = {Liu, Wenwen and Liu, Yuanchang and Bucknall, Richard},
+  title   = {Filtering based multi-sensor data fusion algorithm for a reliable unmanned surface vehicle navigation},
+  journal = {Journal of Marine Engineering \& Technology},
+  volume  = {22},
+  number  = {2},
+  pages   = {67--83},
+  year    = {2023},
+  doi     = {10.1080/20464177.2022.2031558}
+}
+
+@article{cahyadi2023performance,
+  author  = {Cahyadi, Mokhamad Nur and Asfihani, Tahiyatul and Mardiyanto, Ronny and Erfianti, Risa},
+  title   = {Performance of {GPS} and {IMU} sensor fusion using unscented {Kalman} filter for precise i-Boat navigation in infinite wide waters},
+  journal = {Geodesy and Geodynamics},
+  volume  = {14},
+  number  = {3},
+  pages   = {265--274},
+  year    = {2023},
+  doi     = {10.1016/j.geog.2022.11.005}
+}
+
+@article{gorska2026multisensor,
+  author  = {Gorska, Kaja and Theotokatos, Gerasimos},
+  title   = {Multi-sensor data fusion for state estimation of unmanned surface vehicles},
+  journal = {Ships and Offshore Structures},
+  year    = {2026},
+  note    = {Published online 9 September 2026; volume/issue not yet assigned},
+  doi     = {10.1080/17445302.2026.2727610}
+}
+
+% ---------- Bonus: open [?] citations already in Section 3.1 ----------
+@article{dissanayake2001solution,
+  author  = {Dissanayake, M. W. M. Gamini and Newman, Paul and Clark, S. and Durrant-Whyte, Hugh F. and Csorba, M.},
+  title   = {A solution to the simultaneous localization and map building ({SLAM}) problem},
+  journal = {IEEE Transactions on Robotics and Automation},
+  volume  = {17},
+  number  = {3},
+  pages   = {229--241},
+  year    = {2001},
+  doi     = {10.1109/70.938381}
+}
+
+@article{huang2007convergence,
+  author  = {Huang, Shoudong and Dissanayake, Gamini},
+  title   = {Convergence and Consistency Analysis for Extended {Kalman} Filter Based {SLAM}},
+  journal = {IEEE Transactions on Robotics},
+  volume  = {23},
+  number  = {5},
+  pages   = {1036--1049},
+  year    = {2007},
+  doi     = {10.1109/TRO.2007.903811}
+}
+
+@inproceedings{bailey2006consistency,
+  author    = {Bailey, Tim and Nieto, Juan and Guivant, Jose and Stevens, Michael and Nebot, Eduardo},
+  title     = {Consistency of the {EKF-SLAM} Algorithm},
+  booktitle = {2006 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  pages     = {3562--3568},
+  year      = {2006},
+  doi       = {10.1109/IROS.2006.281644}
+}
