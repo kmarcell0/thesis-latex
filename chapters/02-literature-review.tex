@@ -117,17 +117,55 @@ first-order Taylor expansions around the current estimate.
 The filters $A$ and $C$ matrices become Jacobians: $G_t$ is the motion models
 Jacobian with respect to the state, evaluated at the previous mean, and $H_t$
 is the measurement model's Jacobian evaluated at the predicted mean.
-The mean is still propagated through the non-linear models $g$ and $h$ functions.
+The mean is still propagated through the non-linear model's $g$ and $h$ functions.
 Only the covariance and gain utalize the linearized
 $G_t$ and $H_t$ Jacobians~\citep[ch.~3]{thrun2005probabilistic}.
 
+The Extended-Kalman filter's equations are listed in equations \ref{eq:ekf1} - \ref{eq:ekf5}.
+The notation, together with the Kalman filter, is outlined in table \ref{tab:kf-notation}.
+
 \begin{align}
+  \label{eq:ekf1}
   \bar{\mu}_t &= g(u_t, \mu_{t-1}) \\
   \bar{\Sigma}_t &= G_t \Sigma_{t-1} G_t^\top + R_t \\
   K_t &= \bar{\Sigma}_t H_t^\top \left( H_t \bar{\Sigma}_t H_t^\top + Q_t \right)^{-1} \\
   \mu_t &= \bar{\mu}_t + K_t \left( z_t - h(\bar{\mu}_t) \right) \\
-  \Sigma_t &= (I - K_t H_t)\, \bar{\Sigma}_t
+  \Sigma_t &= (I - K_t H_t)\, \bar{\Sigma}_t \label{eq:ekf5}
 \end{align}
+
+Linearization, as all assumptions and estimations, carries a cost.
+The Extended-Kalman filter becomes no longer optimal.
+Furthermore when models are strongly nonlinear the filter can become overconfident,
+meaning the estimated covariance is smaller then the actual error.
+In strongly nonlinear cases the filter can even diverge.
+The typical cause of this problem is heading uncertianty
+~\citep{bailey2006consistency, huang2007convergence}.
+With a large enough heading uncertianty $\sin$ and $\cos$
+are no longer close-to-linear over the range.
+This causes the Jacobians to become inaccurate,
+in turn covariance might become smaller than needed, hence the overconfidence.
+
+The main reasons to use Extended-Kalman filter instaed of other nonlinear filters,
+are it's simplicity, cost to implement/compute, how well researched/understood it is.
+Furthermore measurement of the heading with a dual-antenna GNSS module, greatly decreases
+the heading uncertianty, in turn greatly decreasing the adverse effect of linearization mentioned
+in the previos paragraph~\citep{TODO}.
+
+Other nonlinear filters which were considered for this application are Unscented Kalman Filter (UKF) .,
+and the Particle filter.
+The UKF passes a small set of deterministically chosen sample points (sigma point)
+thourgh the nonlinear $g$ and $h$ functions, then recovers the mean and covariance from them.
+It does not use the Jacobian. In cases of strong nonlinearity it is tipically more accurate than
+the Extended-Kalman filter, with similar order of costs~\citep{julier2004unscented}.
+The Particle filter represents the belief with many weighted samples instaed of a
+Gaussian, so handling of non-Gaussian and multimodal beliefs is possible~\citep{arulampalam2002tutorial, gordon1993novel}.
+The number of particles needed grows quickly with the state dimension,
+which makes it an computatinally expensive solution for large states, such as maps\citep{TODO}.
+These filters are discussed further in section~\ref{sec:literature-review-alternative-approaches},
+with method selection discussed in section~\ref{sec:literature-review-method-selection}.
+
+So far the state only contained the vessel's position and heading. In the following section
+the state is extended with the landmark positions.
 
 \section{The SLAM Problem}
 \label{sec:literature-review-slam-problem}
